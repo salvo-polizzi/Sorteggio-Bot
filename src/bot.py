@@ -9,7 +9,7 @@ from telegram.ext.filters import Filters
 
 from telegram import *
 
-
+#taking the token
 first_line = open("token.txt").readline()
 token = first_line
 	
@@ -19,6 +19,7 @@ b = Bot(token)
 
 sorteggio_admin_command = "sorteggioAdmin"
 
+#defining first methods
 def start(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		"Ciao :), scrivi /help per vedere i comandi disponibili.")	
