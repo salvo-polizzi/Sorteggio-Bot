@@ -9,8 +9,6 @@ from telegram.ext.filters import Filters
 
 from telegram import *
 
-from telegram.ext import CallbackContext, MessageHandler
-
 
 first_line = open("token.txt").readline()
 token = first_line
