@@ -24,23 +24,17 @@ def start(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		"Ciao :), scrivi /help per vedere i comandi disponibili.")	
 
-def nulla(update: Update, context: CallbackContext):
-	update.message.reply_text(
-		"Hahahhaha che comando inutile")
-
 def help(update: Update, context: CallbackContext):
 	update.message.reply_text("Comandi disponibili:" +
-	'\n' + "/sorteggioAdmin - Per sorteggiare gli amministratori"+
-	'\n'+ "/nulla - Comando inutile")
+	'\n' + "/sorteggioAdmin - Per sorteggiare gli amministratori")
 
 def unknown(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		" '%s' non è un comando valido" % update.message.text)
 
-
 def unknown_text(update: Update, context: CallbackContext):
 	update.message.reply_text(
-		"Sorry I can't recognize you , you said '%s'" % update.message.text)
+		"Scusa non ti capisco, hai detto '%s'" % update.message.text)
 
 def get_admin_list_obj(update: Update, context: CallbackContext):
 
@@ -99,7 +93,6 @@ def sorteggio(update: Update, context: CallbackContext):
 	command = update.message.text_html
 	end = command.find(" ")
 	command = command[1: end]
-	#print(command)
 
 	if command == sorteggio_admin_command:
 		list_obj = get_admin_list_obj(update, context)	
@@ -124,7 +117,6 @@ def sorteggio(update: Update, context: CallbackContext):
 
 
 updater.dispatcher.add_handler(CommandHandler('start', start))
-updater.dispatcher.add_handler(CommandHandler('nulla', nulla))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_admin_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler('help', help))
 
