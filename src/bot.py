@@ -1,3 +1,4 @@
+from ast import Call
 import random
 
 from telegram.ext.updater import Updater
@@ -18,6 +19,7 @@ updater = Updater(token, use_context=True)
 b = Bot(token)
 
 sorteggio_admin_command = "sorteggioAdmin"
+sorteggio_users_command = "sorteggioUtenti"
 
 #defining first methods
 def start(update: Update, context: CallbackContext):
@@ -28,6 +30,8 @@ def help(update: Update, context: CallbackContext):
 	update.message.reply_text("Comandi disponibili:" +
 	'\n' + "/sorteggioAdmin - Per sorteggiare gli amministratori")
 
+
+"""
 def unknown(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		" '%s' non è un comando valido" % update.message.text)
@@ -35,6 +39,8 @@ def unknown(update: Update, context: CallbackContext):
 def unknown_text(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		"Scusa non ti capisco, hai detto '%s'" % update.message.text)
+"""
+
 
 def get_admin_list_obj(update: Update, context: CallbackContext):
 
@@ -81,26 +87,44 @@ def get_sorteggiati_list_obj(update: Update, user_list_obj, obj_n: int, estrazio
 	return sorteggiati_list	
 
 
+
+def get_users_list_obj(update: Update, context: CallbackContext):
+
+	names_list = []
+
+	for x in range(1, len(context.args)):
+		names_list.append(context.args[x])
+	return names_list
+
+
 def sorteggio(update: Update, context: CallbackContext):
-
-	try:
-		estrazioni_n = int(context.args[0])
-	except(IndexError):
-		update.message.reply_text("Il comando deve essere utilizzato specificando il numero"+
-			" di utenti da sorteggiare")
-		return		
-
 	command = update.message.text_html
+
+	command += " "
+
 	end = command.find(" ")
 	command = command[1: end]
 
+	try:
+		estrazioni_n = context.args[0]
+		print("stringa: " + estrazioni_n)
+	except(IndexError):
+		if command == sorteggio_admin_command:
+			update.message.reply_text("Il comando deve essere utilizzato specificando il numero"+
+				" di utenti da sorteggiare")
+		elif command == sorteggio_users_command:
+			update.message.reply_text("Il comando deve essere utilizzato specificando il nome"+
+			" degli utenti da sorteggiare")
+		return		
+	
 	if command == sorteggio_admin_command:
 		list_obj = get_admin_list_obj(update, context)	
 	else:
-		print("Qualcosa è andato storto")
+		list_obj = get_users_list_obj(update, context)
 
 	if list_obj == None:
 		return
+	
 
 	list_str = get_list_str(list_obj)
 
@@ -114,15 +138,37 @@ def sorteggio(update: Update, context: CallbackContext):
 
 	sorteggiati_list_str = get_list_str(sorteggiati_list_obj)	
 	update.message.reply_text("Risulato:" + '\n\n' + str(sorteggiati_list_str) )
+	
 
+def sorteggio_manuale(update: Update, context: CallbackContext):
+	lista_utenti = get_users_list_obj(update, context)
+	update.message.reply_text("Lista di partecipanti: \n" + str(lista_utenti))
+
+	estrazioni_n = 0
+
+	try:
+		estrazioni_n = int(context.args[0])
+	except(IndexError):
+		update.message.reply_text("Il comando deve essere utilizzato specificando il numero"+
+			" di utenti da sorteggiare")
+		return	
+	
+	lista_utenti_sorteggiati = []
+
+	for x in range(0, estrazioni_n):
+		index = random.randint(0, len(lista_utenti) - 1)
+		lista_utenti_sorteggiati.append(lista_utenti.pop(index))
+
+	update.message.reply_text("Lista di utenti sorteggiati: \n" + str(lista_utenti_sorteggiati))
 
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_admin_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler('help', help))
+updater.dispatcher.add_handler(CommandHandler(sorteggio_users_command, sorteggio_manuale))
 
 # Filters out unknown commands
-updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown)) 
+#updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown)) 
 # Filters out unknown messages.
-updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
+#updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
 
 updater.start_polling()		
