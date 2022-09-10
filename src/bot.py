@@ -11,7 +11,7 @@ from telegram.ext.filters import Filters
 from telegram import *
 
 #taking the token
-first_line = open("token.txt").readline()
+first_line = open("src/token.txt").readline()
 token = first_line
 	
 updater = Updater(token, use_context=True)
@@ -20,6 +20,11 @@ b = Bot(token)
 
 sorteggio_admin_command = "sorteggioAdmin"
 sorteggio_users_command = "sorteggioUtenti"
+
+str1 = "Il numero di partecipanti al sorteggio è minore del\
+	numero di partecipanti da sorteggiare"
+str2 = "Il comando deve essere utilizzato specificando il numero\
+	di utenti da sorteggiare"			
 
 #defining first methods
 def start(update: Update, context: CallbackContext):
@@ -73,8 +78,7 @@ def get_sorteggiati_list_obj(update: Update, user_list_obj, obj_n: int, estrazio
 	sorteggiati_list = [] 
 
 	if estrazioni_n > obj_n:
-		update.message.reply_text("Il numero di partecipanti al sorteggio è minore del" +
-			" numero di partecipanti da sorteggiare")
+		update.message.reply_text(str1)
 		return None	
 
 	for x in range(0, estrazioni_n):
@@ -88,7 +92,7 @@ def get_sorteggiati_list_obj(update: Update, user_list_obj, obj_n: int, estrazio
 
 
 
-def get_users_list_obj(update: Update, context: CallbackContext):
+def get_users_list(context: CallbackContext):
 
 	names_list = []
 
@@ -98,34 +102,22 @@ def get_users_list_obj(update: Update, context: CallbackContext):
 
 
 def sorteggio(update: Update, context: CallbackContext):
+	
 	command = update.message.text_html
 
-	command += " "
-
-	end = command.find(" ")
-	command = command[1: end]
-
 	try:
-		estrazioni_n = context.args[0]
-		print("stringa: " + estrazioni_n)
-	except(IndexError):
-		if command == sorteggio_admin_command:
-			update.message.reply_text("Il comando deve essere utilizzato specificando il numero"+
-				" di utenti da sorteggiare")
-		elif command == sorteggio_users_command:
-			update.message.reply_text("Il comando deve essere utilizzato specificando il nome"+
-			" degli utenti da sorteggiare")
+		estrazioni_n = int(context.args[0])
+	except(IndexError, ValueError):
+		if command.find(sorteggio_admin_command) != -1:
+			update.message.reply_text(str2)
 		return		
 	
-	if command == sorteggio_admin_command:
-		list_obj = get_admin_list_obj(update, context)	
-	else:
-		list_obj = get_users_list_obj(update, context)
+	if command.find(sorteggio_admin_command) != -1:
+		list_obj = get_admin_list_obj(update, context)
 
 	if list_obj == None:
 		return
 	
-
 	list_str = get_list_str(list_obj)
 
 	update.message.reply_text("Lista di partecipanti al Sorteggio:" + '\n\n' + str(list_str))	
@@ -141,17 +133,22 @@ def sorteggio(update: Update, context: CallbackContext):
 	
 
 def sorteggio_manuale(update: Update, context: CallbackContext):
-	lista_utenti = get_users_list_obj(update, context)
-	update.message.reply_text("Lista di partecipanti: \n" + str(lista_utenti))
+
+	lista_utenti = get_users_list(context)
 
 	estrazioni_n = 0
 
 	try:
 		estrazioni_n = int(context.args[0])
-	except(IndexError):
-		update.message.reply_text("Il comando deve essere utilizzato specificando il numero"+
-			" di utenti da sorteggiare")
+	except(IndexError, ValueError):
+		update.message.reply_text(str2)
 		return	
+
+	update.message.reply_text("Lista di partecipanti: \n" + str(lista_utenti))		
+
+	if estrazioni_n > len(lista_utenti):
+		update.message.reply_text(str1)
+		return None		
 	
 	lista_utenti_sorteggiati = []
 
