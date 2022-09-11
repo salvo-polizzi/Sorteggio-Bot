@@ -19,12 +19,21 @@ updater = Updater(token, use_context=True)
 b = Bot(token)
 
 sorteggio_admin_command = "sorteggioAdmin"
-sorteggio_users_command = "sorteggioUtenti"
+sorteggio_users_command = "sorteggioParole"
 
 str1 = "Il numero di partecipanti al sorteggio è minore del\
 	numero di partecipanti da sorteggiare"
 str2 = "Il comando deve essere utilizzato specificando il numero\
-	di utenti da sorteggiare"			
+	di utenti da sorteggiare"
+str3 = "Il comando deve essere utilizzato specificando il numero\
+	di parole da sorteggiare"
+str4 = "Il numero di parole al sorteggio è minore del\
+	numero di parole da sorteggiare"
+
+help_str = "Comandi disponibili:\
+	\n /sorteggioAdmin N - Per sorteggiare N amministratori\
+	\n /sorteggioParole N parola1 parola2 ... - Per sortegggiare N parole"
+
 
 #defining first methods
 def start(update: Update, context: CallbackContext):
@@ -32,19 +41,15 @@ def start(update: Update, context: CallbackContext):
 		"Ciao :), scrivi /help per vedere i comandi disponibili.")	
 
 def help(update: Update, context: CallbackContext):
-	update.message.reply_text("Comandi disponibili:" +
-	'\n' + "/sorteggioAdmin - Per sorteggiare gli amministratori")
+	update.message.reply_text(help_str)
 
-
-"""
 def unknown(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		" '%s' non è un comando valido" % update.message.text)
 
-def unknown_text(update: Update, context: CallbackContext):
-	update.message.reply_text(
-		"Scusa non ti capisco, hai detto '%s'" % update.message.text)
-"""
+# def unknown_text(update: Update, context: CallbackContext):
+# 	update.message.reply_text(
+# 		"Scusa non ti capisco, hai detto '%s'" % update.message.text)
 
 
 def get_admin_list_obj(update: Update, context: CallbackContext):
@@ -92,13 +97,13 @@ def get_sorteggiati_list_obj(update: Update, user_list_obj, obj_n: int, estrazio
 
 
 
-def get_users_list(context: CallbackContext):
+def get_words_list(context: CallbackContext):
 
-	names_list = []
+	words_list = []
 
 	for x in range(1, len(context.args)):
-		names_list.append(context.args[x])
-	return names_list
+		words_list.append(context.args[x])
+	return words_list
 
 
 def sorteggio(update: Update, context: CallbackContext):
@@ -132,39 +137,39 @@ def sorteggio(update: Update, context: CallbackContext):
 	update.message.reply_text("Risulato:" + '\n\n' + str(sorteggiati_list_str) )
 	
 
-def sorteggio_manuale(update: Update, context: CallbackContext):
+def sorteggio_parole(update: Update, context: CallbackContext):
 
-	lista_utenti = get_users_list(context)
+	lista_parole = get_words_list(context)
 
 	estrazioni_n = 0
 
 	try:
 		estrazioni_n = int(context.args[0])
 	except(IndexError, ValueError):
-		update.message.reply_text(str2)
+		update.message.reply_text(str3)
 		return	
 
-	update.message.reply_text("Lista di partecipanti: \n" + str(lista_utenti))		
+	update.message.reply_text("Lista di parole: \n" + str(lista_parole))		
 
-	if estrazioni_n > len(lista_utenti):
-		update.message.reply_text(str1)
+	if estrazioni_n > len(lista_parole):
+		update.message.reply_text(str4)
 		return None		
 	
-	lista_utenti_sorteggiati = []
+	lista_parole_sorteggiate = []
 
 	for x in range(0, estrazioni_n):
-		index = random.randint(0, len(lista_utenti) - 1)
-		lista_utenti_sorteggiati.append(lista_utenti.pop(index))
+		index = random.randint(0, len(lista_parole) - 1)
+		lista_parole_sorteggiate.append(lista_parole.pop(index))
 
-	update.message.reply_text("Lista di utenti sorteggiati: \n" + str(lista_utenti_sorteggiati))
+	update.message.reply_text("Lista di parole sorteggiate: \n" + str(lista_parole_sorteggiate))
 
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_admin_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler('help', help))
-updater.dispatcher.add_handler(CommandHandler(sorteggio_users_command, sorteggio_manuale))
+updater.dispatcher.add_handler(CommandHandler(sorteggio_users_command, sorteggio_parole))
 
 # Filters out unknown commands
-#updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown)) 
+updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown)) 
 # Filters out unknown messages.
 #updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
 
