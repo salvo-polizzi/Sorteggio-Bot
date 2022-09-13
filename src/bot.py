@@ -19,7 +19,8 @@ updater = Updater(token, use_context=True)
 b = Bot(token)
 
 sorteggio_admin_command = "sorteggioAdmin"
-sorteggio_users_command = "sorteggioParole"
+sorteggio_words_command = "sorteggioParole"
+sorteggio_all_users_command = "sorteggioUtenti"
 
 str1 = "Il numero di partecipanti al sorteggio è minore del\
 	numero di partecipanti da sorteggiare"
@@ -31,8 +32,10 @@ str4 = "Il numero di parole al sorteggio è minore del\
 	numero di parole da sorteggiare"
 
 help_str = "Comandi disponibili:\
-	\n /sorteggioAdmin N - Per sorteggiare N amministratori\
-	\n /sorteggioParole N parola1 parola2 ... - Per sortegggiare N parole"
+	\n\n /sorteggioAdmin N - Per sorteggiare N utenti amministratori\
+	\n /sorteggioParole N parola1 parola2 ecc... - Per sortegggiare N parole\
+	\n /sorteggioUtenti N - Per sorteggiare N utenti qualsiasi (che hanno scritto\
+	almento una volta nel gruppo da quando il bot è stato inserito)"
 
 
 #defining first methods
@@ -44,28 +47,19 @@ def help(update: Update, context: CallbackContext):
 	update.message.reply_text(help_str)
 
 def unknown(update: Update, context: CallbackContext):
+	update_chat_data(update, context)
 	update.message.reply_text(
 		" '%s' non è un comando valido" % update.message.text)
 
-# def unknown_text(update: Update, context: CallbackContext):
-# 	update.message.reply_text(
-# 		"Scusa non ti capisco, hai detto '%s'" % update.message.text)
-
-
-def get_admin_list_obj(update: Update, context: CallbackContext):
+def get_admin_list_obj(update: Update, context: CallbackContext) ->list[ChatMember]:
 
 	chat_id = context._chat_id_and_data[0]
-	chat_type =  b.get_chat(chat_id).type
-
-	if chat_type != "group" and  chat_type != "supergroup":
-		update.message.reply_text("Non è possibile eseguire il comando in questo ambiente")
-		return None
 
 	admin_list_obj = b.get_chat_administrators(chat_id)
 
 	return admin_list_obj		
 
-def get_list_str(user_list_obj):
+def get_list_str(user_list_obj) ->list[str]:
 
 	lista = []
 	for u in user_list_obj:
@@ -78,7 +72,7 @@ def get_list_str(user_list_obj):
 
 	return lista
 
-def get_sorteggiati_list_obj(update: Update, user_list_obj, obj_n: int, estrazioni_n: int):
+def get_sorteggiati_list_obj(update: Update, user_list_obj, obj_n: int, estrazioni_n: int) ->list[ChatMember]:
 
 	sorteggiati_list = [] 
 
@@ -97,7 +91,7 @@ def get_sorteggiati_list_obj(update: Update, user_list_obj, obj_n: int, estrazio
 
 
 
-def get_words_list(context: CallbackContext):
+def get_words_list(context: CallbackContext) ->list[str]:
 
 	words_list = []
 
@@ -107,21 +101,27 @@ def get_words_list(context: CallbackContext):
 
 
 def sorteggio(update: Update, context: CallbackContext):
+
+	chat_id = context._chat_id_and_data[0]
+	chat_type =  b.get_chat(chat_id).type
+
+	if chat_type != "group" and  chat_type != "supergroup":
+		update.message.reply_text("Non è possibile eseguire il comando in questo ambiente")
+		return
 	
 	command = update.message.text_html
 
 	try:
 		estrazioni_n = int(context.args[0])
 	except(IndexError, ValueError):
-		if command.find(sorteggio_admin_command) != -1:
-			update.message.reply_text(str2)
+		if command.find(sorteggio_admin_command) != -1 or command.find(sorteggio_all_users_command) != -1:
+			update.message.reply_text(str2)	
 		return		
 	
 	if command.find(sorteggio_admin_command) != -1:
 		list_obj = get_admin_list_obj(update, context)
-
-	if list_obj == None:
-		return
+	elif command.find(sorteggio_all_users_command) != -1:
+		list_obj = get_all_members_list_obj(context)	
 	
 	list_str = get_list_str(list_obj)
 
@@ -163,14 +163,53 @@ def sorteggio_parole(update: Update, context: CallbackContext):
 
 	update.message.reply_text("Lista di parole sorteggiate: \n" + str(lista_parole_sorteggiate))
 
+def update_chat_data(update: Update, context: CallbackContext):
+	#ATTENZIONE: affinche funzioni per bene, cioè possa leggere tutti i messaggi
+	#group privacy mode deve essere off
+
+	messages_dict = context.chat_data
+	messages_dict[len(messages_dict)] = update.effective_message
+
+	#print(context.chat_data)
+
+def get_all_members_list_obj(context: CallbackContext) ->list[ChatMember]:
+
+	chat_id = context._chat_id_and_data[0]
+
+	messages_list_obj = list(context.chat_data.values())
+	#print(messages_list_obj)
+
+	members_list_obj = []
+
+	for message in messages_list_obj:
+
+		chat_member = b.get_chat_member(chat_id, message.from_user.id)
+		duplicato = True
+
+		try:
+			index = members_list_obj.index(chat_member)
+		except(ValueError):
+			duplicato = False
+
+		if not duplicato:
+			members_list_obj.append(chat_member)
+				
+		#print(chat_member)
+
+	#print(members_list_obj)
+	
+	return members_list_obj
+
+
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_admin_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler('help', help))
-updater.dispatcher.add_handler(CommandHandler(sorteggio_users_command, sorteggio_parole))
+updater.dispatcher.add_handler(CommandHandler(sorteggio_words_command, sorteggio_parole))
+updater.dispatcher.add_handler(CommandHandler(sorteggio_all_users_command, sorteggio))
 
 # Filters out unknown commands
 updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown)) 
-# Filters out unknown messages.
-#updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
+# Filters out not command messages
+updater.dispatcher.add_handler(MessageHandler(Filters.text, update_chat_data))
 
 updater.start_polling()		
