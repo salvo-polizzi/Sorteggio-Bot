@@ -11,7 +11,7 @@ from telegram.ext.filters import Filters
 from telegram import *
 
 #taking the token
-first_line = open("src/token.txt").readline()
+first_line = open("token.txt").readline()
 token = first_line
 	
 updater = Updater(token, use_context=True)
