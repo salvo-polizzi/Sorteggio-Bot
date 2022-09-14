@@ -36,7 +36,9 @@ help_str = "Comandi disponibili:\
 	\n\n /sorteggioAdmin N - Per sorteggiare N utenti amministratori\
 	\n /sorteggioParole N parola1 parola2 ecc... - Per sortegggiare N parole\
 	\n /sorteggioUtenti N - Per sorteggiare N utenti qualsiasi (che hanno scritto\
-	almento una volta nel gruppo da quando il bot è stato inserito)"
+	almento una volta nel gruppo da quando il bot è stato inserito)\
+	\n /sorteggioNonAdmin N - Per sorteggiare N utenti non amministratori\
+	(che hanno scritto almento una volta nel gruppo da quando il bot è stato inserito)"
 
 
 #defining first methods
