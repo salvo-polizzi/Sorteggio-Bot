@@ -1,4 +1,5 @@
 from ast import Call
+from calendar import c
 import random
 
 from telegram.ext.updater import Updater
@@ -19,7 +20,7 @@ updater = Updater(token, use_context=True)
 b = Bot(token)
 
 sorteggio_admin_command = "sorteggioAdmin"
-sorteggio_words_command = "sorteggioParole"
+sorteggio_users_command = "sorteggioManuale"
 sorteggio_all_users_command = "sorteggioUtenti"
 sorteggio_non_admin_command = "sorteggioNonAdmin"
 
@@ -27,14 +28,12 @@ str1 = "Il numero di partecipanti al sorteggio è minore del\
 	numero di partecipanti da sorteggiare"
 str2 = "Il comando deve essere utilizzato specificando il numero\
 	di partecipanti da sorteggiare"
-str3 = "Il comando deve essere utilizzato specificando il numero\
-	di parole da sorteggiare"
-str4 = "Il numero di parole al sorteggio è minore del\
-	numero di parole da sorteggiare"
+
 
 help_str = f"Comandi disponibili:\
 	\n\n /{sorteggio_admin_command} N - Per sorteggiare N utenti amministratori\
-	\n /{sorteggio_words_command} N parola1 parola2 ecc... - Per sortegggiare N parole\
+	\n /{sorteggio_users_command} N username1 username2 (specificare la @) ecc... - Per sorteggiare N utenti scelti (che hanno scritto\
+	almento una volta nel gruppo da quando il bot è stato inserito)\
 	\n /{sorteggio_all_users_command} N - Per sorteggiare N utenti qualsiasi (che hanno scritto\
 	almento una volta nel gruppo da quando il bot è stato inserito)\
 	\n /{sorteggio_non_admin_command} N - Per sorteggiare N utenti non amministratori\
@@ -62,7 +61,7 @@ def get_admin_list_obj(update: Update, context: CallbackContext) ->list[ChatMemb
 
 	return admin_list_obj		
 
-def get_list_str(user_list_obj) ->list[str]:
+def get_list_str(user_list_obj: list[ChatMember]) ->list[str]:
 
 	lista = []
 	for u in user_list_obj:
@@ -94,13 +93,35 @@ def get_sorteggiati_list_obj(update: Update, user_list_obj, obj_n: int, estrazio
 
 
 
-def get_words_list(context: CallbackContext) ->list[str]:
-
-	words_list = []
+def get_chosen_users(context: CallbackContext) -> list[ChatMember]:
+	
+	user_list = []
 
 	for x in range(1, len(context.args)):
-		words_list.append(context.args[x])
-	return words_list
+		user_list.append((context.args[x])[1:])
+	
+	all_member_list = get_all_members_list_obj(context)
+	chosen_user_list = []
+	for user in user_list:
+		found = False
+		for member in all_member_list:
+			if user == member.user.username:
+				chosen_user_list.append(member)
+				found = True
+		if not found:
+			return None
+	return chosen_user_list
+
+	
+
+#def get_username_list(context: CallbackContext):
+	list_members = get_all_members_list_obj(context)
+
+	list_username = []
+	for member in list_members:
+		list_username.append(member.user.username)
+
+	return list_username
 
 
 def sorteggio(update: Update, context: CallbackContext):
@@ -141,32 +162,38 @@ def sorteggio(update: Update, context: CallbackContext):
 	update.message.reply_text("Risulato:" + '\n\n' + str(sorteggiati_list_str) )
 	
 
-def sorteggio_parole(update: Update, context: CallbackContext):
+def sorteggio_utenti_scelti(update: Update, context: CallbackContext):
 
-	lista_parole = get_words_list(context)
+	lista_utenti = get_chosen_users(context)
 
+	if lista_utenti == None:
+		update.message.reply_text("Inserisci uno o più username validi")
+		return
+	
 	estrazioni_n = 0
 
 	try:
 		estrazioni_n = int(context.args[0])
 	except(IndexError, ValueError):
-		update.message.reply_text(str3)
+		update.message.reply_text(str2)
 		return	
 
-	update.message.reply_text("Lista di parole: \n" + str(lista_parole))		
+	lista_utenti_str = get_list_str(lista_utenti)
 
-	if estrazioni_n > len(lista_parole):
-		update.message.reply_text(str4)
+	update.message.reply_text("Lista di partecipanti al Sorteggio:" + '\n\n' + str(lista_utenti_str))		
+
+	if estrazioni_n > len(lista_utenti):
+		update.message.reply_text(str1)
 		return None		
 	
-	lista_parole_sorteggiate = []
+	lista_utenti_sorteggiati = []
 
 	for x in range(0, estrazioni_n):
-		index = random.randint(0, len(lista_parole) - 1)
-		lista_parole_sorteggiate.append(lista_parole.pop(index))
+		index = random.randint(0, len(lista_utenti) - 1)
+		lista_utenti_sorteggiati.append(lista_utenti.pop(index))
 
-	update.message.reply_text("Lista di parole sorteggiate: \n" + str(lista_parole_sorteggiate))
-
+	update.message.reply_text("Lista di utenti sorteggiati: \n" + str(get_list_str(lista_utenti_sorteggiati)))
+	
 def update_chat_data(update: Update, context: CallbackContext) ->None:
 	#ATTENZIONE: affinche funzioni per bene, cioè possa leggere tutti i messaggi
 	#group privacy mode deve essere off
@@ -203,7 +230,7 @@ def get_non_administrators(update: Update, context: CallbackContext) -> list[Cha
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_admin_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler('help', help))
-updater.dispatcher.add_handler(CommandHandler(sorteggio_words_command, sorteggio_parole))
+updater.dispatcher.add_handler(CommandHandler(sorteggio_users_command, sorteggio_utenti_scelti))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_all_users_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_non_admin_command, sorteggio))
 
