@@ -18,6 +18,8 @@ If you want to set up a local insance you have to:
 - Type the command `\setprivacy` and choose your bot
 - At the end type **disable** so that the bot will receive all the message that people send to the group
 
+_NOTE: Set up botfather **before** adding the bot to a group_
+
 ### Systems requirements
 
 - python 3
