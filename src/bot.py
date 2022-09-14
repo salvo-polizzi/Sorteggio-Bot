@@ -12,7 +12,7 @@ from telegram.ext.filters import Filters
 from telegram import *
 
 #taking the token
-first_line = open("token.txt").readline()
+first_line = open("src/token.txt").readline()
 token = first_line
 	
 updater = Updater(token, use_context=True)
@@ -74,20 +74,19 @@ def get_list_str(user_list_obj: list[ChatMember]) ->list[str]:
 
 	return lista
 
-def get_sorteggiati_list_obj(update: Update, user_list_obj, obj_n: int, estrazioni_n: int) ->list[ChatMember]:
+def get_sorteggiati_list_obj(update: Update, user_list_obj: list[ChatMember], estrazioni_n: int) ->list[ChatMember]:
 
 	sorteggiati_list = [] 
 
-	if estrazioni_n > obj_n:
+	if estrazioni_n > len(user_list_obj):
 		update.message.reply_text(str1)
 		return None	
 
 	for x in range(0, estrazioni_n):
 
-		index = random.randint(0, obj_n-1) #estrazione sorteggio
+		index = random.randint(0, len(user_list_obj)-1) #estrazione sorteggio
 
-		sorteggiati_list.append(user_list_obj.pop(index))		
-		obj_n = obj_n - 1	
+		sorteggiati_list.append(user_list_obj.pop(index))			
 
 	return sorteggiati_list	
 
@@ -111,17 +110,6 @@ def get_chosen_users(context: CallbackContext) -> list[ChatMember]:
 		if not found:
 			return None
 	return chosen_user_list
-
-	
-
-#def get_username_list(context: CallbackContext):
-	list_members = get_all_members_list_obj(context)
-
-	list_username = []
-	for member in list_members:
-		list_username.append(member.user.username)
-
-	return list_username
 
 
 def sorteggio(update: Update, context: CallbackContext):
@@ -147,13 +135,18 @@ def sorteggio(update: Update, context: CallbackContext):
 		list_obj = get_all_members_list_obj(context)
 	elif command.find(sorteggio_non_admin_command) != -1:
 		list_obj = get_non_administrators(update, context)
+	elif command.find(sorteggio_users_command) != -1:
+		list_obj = get_chosen_users(context)
+		if list_obj == None:
+			update.message.reply_text("Inserisci uno o più username validi")
+			return
 	
 	list_str = get_list_str(list_obj)
 
 	update.message.reply_text("Lista di partecipanti al Sorteggio:" + '\n\n' + str(list_str))	
 
 	sorteggiati_list_obj = get_sorteggiati_list_obj(update, 
-		list_obj, len(list_obj), estrazioni_n)
+		list_obj, estrazioni_n)
 
 	if sorteggiati_list_obj == None:
 		return
@@ -162,41 +155,9 @@ def sorteggio(update: Update, context: CallbackContext):
 	update.message.reply_text("Risulato:" + '\n\n' + str(sorteggiati_list_str) )
 	
 
-def sorteggio_utenti_scelti(update: Update, context: CallbackContext):
-
-	lista_utenti = get_chosen_users(context)
-
-	if lista_utenti == None:
-		update.message.reply_text("Inserisci uno o più username validi")
-		return
-	
-	estrazioni_n = 0
-
-	try:
-		estrazioni_n = int(context.args[0])
-	except(IndexError, ValueError):
-		update.message.reply_text(str2)
-		return	
-
-	lista_utenti_str = get_list_str(lista_utenti)
-
-	update.message.reply_text("Lista di partecipanti al Sorteggio:" + '\n\n' + str(lista_utenti_str))		
-
-	if estrazioni_n > len(lista_utenti):
-		update.message.reply_text(str1)
-		return None		
-	
-	lista_utenti_sorteggiati = []
-
-	for x in range(0, estrazioni_n):
-		index = random.randint(0, len(lista_utenti) - 1)
-		lista_utenti_sorteggiati.append(lista_utenti.pop(index))
-
-	update.message.reply_text("Lista di utenti sorteggiati: \n" + str(get_list_str(lista_utenti_sorteggiati)))
-	
 def update_chat_data(update: Update, context: CallbackContext) ->None:
 	#ATTENZIONE: affinche funzioni per bene, cioè possa leggere tutti i messaggi
-	#group privacy mode deve essere off
+	#group privacy mode deve essere off (da prima ancora di avere aggiunto il bot al gruppo)
 
 	chat_members_dict = context.chat_data
 	chat_members_list_obj = list(chat_members_dict.values())
@@ -228,9 +189,9 @@ def get_non_administrators(update: Update, context: CallbackContext) -> list[Cha
 	return list_non_admin
 
 updater.dispatcher.add_handler(CommandHandler('start', start))
-updater.dispatcher.add_handler(CommandHandler(sorteggio_admin_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler('help', help))
-updater.dispatcher.add_handler(CommandHandler(sorteggio_users_command, sorteggio_utenti_scelti))
+updater.dispatcher.add_handler(CommandHandler(sorteggio_admin_command, sorteggio))
+updater.dispatcher.add_handler(CommandHandler(sorteggio_users_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_all_users_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_non_admin_command, sorteggio))
 
