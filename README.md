@@ -12,7 +12,11 @@ If you want to set up a local insance you have to:
 - **Set your token** with `python3 setup.py <token>` 
 - **Launch** the bot with `python3 src/bot.py`
 
-_(If you don't have a token, send a message to [@BotFather](http://telegram.me/Botfather) to create a bot and get a token for it)_
+### Set up Botfather 
+
+- If you don't have a token, send a message to [@BotFather](http://telegram.me/Botfather) to create a bot and get a token for it
+- Type the command `\setprivacy` and choose your bot
+- At the end type **disable** so that the bot will receive all the message that people send to the group
 
 ### Systems requirements
 
