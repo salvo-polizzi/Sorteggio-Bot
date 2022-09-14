@@ -11,7 +11,7 @@ from telegram.ext.filters import Filters
 from telegram import *
 
 #taking the token
-first_line = open("src/token.txt").readline()
+first_line = open("token.txt").readline()
 token = first_line
 	
 updater = Updater(token, use_context=True)
@@ -21,6 +21,7 @@ b = Bot(token)
 sorteggio_admin_command = "sorteggioAdmin"
 sorteggio_words_command = "sorteggioParole"
 sorteggio_all_users_command = "sorteggioUtenti"
+sorteggio_non_admin_command = "sorteggioNonAdmin"
 
 str1 = "Il numero di partecipanti al sorteggio è minore del\
 	numero di partecipanti da sorteggiare"
@@ -121,7 +122,9 @@ def sorteggio(update: Update, context: CallbackContext):
 	if command.find(sorteggio_admin_command) != -1:
 		list_obj = get_admin_list_obj(update, context)
 	elif command.find(sorteggio_all_users_command) != -1:
-		list_obj = get_all_members_list_obj(context)	
+		list_obj = get_all_members_list_obj(context)
+	elif command.find(sorteggio_non_admin_command) != -1:
+		list_obj = get_non_administrators(update, context)
 	
 	list_str = get_list_str(list_obj)
 
@@ -200,12 +203,23 @@ def get_all_members_list_obj(context: CallbackContext) ->list[ChatMember]:
 	
 	return members_list_obj
 
+def get_non_administrators(update: Update, context: CallbackContext) -> list[ChatMember]:
+
+	list_members = get_all_members_list_obj(context)
+
+	list_non_admin = []
+	for member in list_members:
+		if member.status != "administrator" and member.status != "creator":
+			list_non_admin.append(member)
+
+	return list_non_admin
 
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_admin_command, sorteggio))
 updater.dispatcher.add_handler(CommandHandler('help', help))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_words_command, sorteggio_parole))
 updater.dispatcher.add_handler(CommandHandler(sorteggio_all_users_command, sorteggio))
+updater.dispatcher.add_handler(CommandHandler(sorteggio_non_admin_command, sorteggio))
 
 # Filters out unknown commands
 updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown)) 
