@@ -11,7 +11,7 @@ from telegram.ext.filters import Filters
 from telegram import *
 
 #taking the token
-first_line = open("token.txt").readline()
+first_line = open("src/token.txt").readline()
 token = first_line
 	
 updater = Updater(token, use_context=True)
@@ -26,18 +26,18 @@ sorteggio_non_admin_command = "sorteggioNonAdmin"
 str1 = "Il numero di partecipanti al sorteggio è minore del\
 	numero di partecipanti da sorteggiare"
 str2 = "Il comando deve essere utilizzato specificando il numero\
-	di utenti da sorteggiare"
+	di partecipanti da sorteggiare"
 str3 = "Il comando deve essere utilizzato specificando il numero\
 	di parole da sorteggiare"
 str4 = "Il numero di parole al sorteggio è minore del\
 	numero di parole da sorteggiare"
 
-help_str = "Comandi disponibili:\
-	\n\n /sorteggioAdmin N - Per sorteggiare N utenti amministratori\
-	\n /sorteggioParole N parola1 parola2 ecc... - Per sortegggiare N parole\
-	\n /sorteggioUtenti N - Per sorteggiare N utenti qualsiasi (che hanno scritto\
+help_str = f"Comandi disponibili:\
+	\n\n /{sorteggio_admin_command} N - Per sorteggiare N utenti amministratori\
+	\n /{sorteggio_words_command} N parola1 parola2 ecc... - Per sortegggiare N parole\
+	\n /{sorteggio_all_users_command} N - Per sorteggiare N utenti qualsiasi (che hanno scritto\
 	almento una volta nel gruppo da quando il bot è stato inserito)\
-	\n /sorteggioNonAdmin N - Per sorteggiare N utenti non amministratori\
+	\n /{sorteggio_non_admin_command} N - Per sorteggiare N utenti non amministratori\
 	(che hanno scritto almento una volta nel gruppo da quando il bot è stato inserito)"
 
 
@@ -117,8 +117,7 @@ def sorteggio(update: Update, context: CallbackContext):
 	try:
 		estrazioni_n = int(context.args[0])
 	except(IndexError, ValueError):
-		if command.find(sorteggio_admin_command) != -1 or command.find(sorteggio_all_users_command) != -1:
-			update.message.reply_text(str2)	
+		update.message.reply_text(str2)
 		return		
 	
 	if command.find(sorteggio_admin_command) != -1:
@@ -168,42 +167,27 @@ def sorteggio_parole(update: Update, context: CallbackContext):
 
 	update.message.reply_text("Lista di parole sorteggiate: \n" + str(lista_parole_sorteggiate))
 
-def update_chat_data(update: Update, context: CallbackContext):
+def update_chat_data(update: Update, context: CallbackContext) ->None:
 	#ATTENZIONE: affinche funzioni per bene, cioè possa leggere tutti i messaggi
 	#group privacy mode deve essere off
 
-	messages_dict = context.chat_data
-	messages_dict[len(messages_dict)] = update.effective_message
+	chat_members_dict = context.chat_data
+	chat_members_list_obj = list(chat_members_dict.values())
+
+	for chat_member in chat_members_list_obj:
+		if chat_member.user.id == update.effective_message.from_user.id:
+			return
+
+	chat_id = context._chat_id_and_data[0]
+	chat_member = b.get_chat_member(chat_id, update.effective_message.from_user.id)
+	chat_members_dict[len(chat_members_dict)] = chat_member
 
 	#print(context.chat_data)
 
 def get_all_members_list_obj(context: CallbackContext) ->list[ChatMember]:
 
-	chat_id = context._chat_id_and_data[0]
-
-	messages_list_obj = list(context.chat_data.values())
-	#print(messages_list_obj)
-
-	members_list_obj = []
-
-	for message in messages_list_obj:
-
-		chat_member = b.get_chat_member(chat_id, message.from_user.id)
-		duplicato = True
-
-		try:
-			index = members_list_obj.index(chat_member)
-		except(ValueError):
-			duplicato = False
-
-		if not duplicato:
-			members_list_obj.append(chat_member)
-				
-		#print(chat_member)
-
-	#print(members_list_obj)
-	
-	return members_list_obj
+	chat_members_list_obj = list(context.chat_data.values())
+	return chat_members_list_obj
 
 def get_non_administrators(update: Update, context: CallbackContext) -> list[ChatMember]:
 
