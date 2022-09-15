@@ -10,6 +10,7 @@ from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
 
 from telegram import *
+from vars import *
 
 #taking the token
 first_line = open("src/token.txt").readline()
@@ -19,34 +20,13 @@ updater = Updater(token, use_context=True)
 
 b = Bot(token)
 
-sorteggio_admin_command = "sorteggioAdmin"
-sorteggio_users_command = "sorteggioManuale"
-sorteggio_all_users_command = "sorteggioUtenti"
-sorteggio_non_admin_command = "sorteggioNonAdmin"
-
-str1 = "Il numero di partecipanti al sorteggio è minore del\
-	numero di partecipanti da sorteggiare"
-str2 = "Il comando deve essere utilizzato specificando il numero\
-	di partecipanti da sorteggiare"
-
-
-help_str = f"Comandi disponibili:\
-	\n\n /{sorteggio_admin_command} N - Per sorteggiare N utenti amministratori\
-	\n /{sorteggio_users_command} N username1 username2 (specificare la @) ecc... - Per sorteggiare N utenti scelti (che hanno scritto\
-	almento una volta nel gruppo da quando il bot è stato inserito)\
-	\n /{sorteggio_all_users_command} N - Per sorteggiare N utenti qualsiasi (che hanno scritto\
-	almento una volta nel gruppo da quando il bot è stato inserito)\
-	\n /{sorteggio_non_admin_command} N - Per sorteggiare N utenti non amministratori\
-	(che hanno scritto almento una volta nel gruppo da quando il bot è stato inserito)"
-
-
 #defining first methods
 def start(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		"Ciao :), scrivi /help per vedere i comandi disponibili.")	
 
 def help(update: Update, context: CallbackContext):
-	update.message.reply_text(help_str)
+	update.message.reply_text(HELP)
 
 def unknown(update: Update, context: CallbackContext):
 	update_chat_data(update, context)
@@ -79,7 +59,7 @@ def get_sorteggiati_list_obj(update: Update, user_list_obj: list[ChatMember], es
 	sorteggiati_list = [] 
 
 	if estrazioni_n > len(user_list_obj):
-		update.message.reply_text(str1)
+		update.message.reply_text(RISPOSTE["numero_partecipanti"])
 		return None	
 
 	for x in range(0, estrazioni_n):
@@ -126,16 +106,16 @@ def sorteggio(update: Update, context: CallbackContext):
 	try:
 		estrazioni_n = int(context.args[0])
 	except(IndexError, ValueError):
-		update.message.reply_text(str2)
+		update.message.reply_text(RISPOSTE["specificare_partecipanti"])
 		return		
 	
-	if command.find(sorteggio_admin_command) != -1:
+	if command.find(COMANDI["sorteggio_admin"]) != -1:
 		list_obj = get_admin_list_obj(update, context)
-	elif command.find(sorteggio_all_users_command) != -1:
+	elif command.find(COMANDI["sorteggio_tutti_utenti"]) != -1:
 		list_obj = get_all_members_list_obj(context)
-	elif command.find(sorteggio_non_admin_command) != -1:
+	elif command.find(COMANDI["sorteggio_non_admin"]) != -1:
 		list_obj = get_non_administrators(update, context)
-	elif command.find(sorteggio_users_command) != -1:
+	elif command.find(COMANDI["sorteggio_utenti_scelti"]) != -1:
 		list_obj = get_chosen_users(context)
 		if list_obj == None:
 			update.message.reply_text("Inserisci uno o più username validi")
@@ -190,10 +170,10 @@ def get_non_administrators(update: Update, context: CallbackContext) -> list[Cha
 
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler('help', help))
-updater.dispatcher.add_handler(CommandHandler(sorteggio_admin_command, sorteggio))
-updater.dispatcher.add_handler(CommandHandler(sorteggio_users_command, sorteggio))
-updater.dispatcher.add_handler(CommandHandler(sorteggio_all_users_command, sorteggio))
-updater.dispatcher.add_handler(CommandHandler(sorteggio_non_admin_command, sorteggio))
+updater.dispatcher.add_handler(CommandHandler(COMANDI["sorteggio_admin"], sorteggio))
+updater.dispatcher.add_handler(CommandHandler(COMANDI["sorteggio_utenti_scelti"], sorteggio))
+updater.dispatcher.add_handler(CommandHandler(COMANDI["sorteggio_tutti_utenti"], sorteggio))
+updater.dispatcher.add_handler(CommandHandler(COMANDI["sorteggio_non_admin"], sorteggio))
 
 # Filters out unknown commands
 updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown)) 
