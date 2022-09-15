@@ -33,7 +33,7 @@ def unknown(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		" '%s' non è un comando valido" % update.message.text)
 
-def get_admin_list_obj(update: Update, context: CallbackContext) ->list[ChatMember]:
+def get_admin_list(update: Update, context: CallbackContext) ->list[ChatMember]:
 
 	chat_id = context._chat_id_and_data[0]
 
@@ -41,7 +41,7 @@ def get_admin_list_obj(update: Update, context: CallbackContext) ->list[ChatMemb
 
 	return admin_list_obj		
 
-def get_list_str(user_list_obj: list[ChatMember]) ->list[str]:
+def user_list_to_string(user_list_obj: list[ChatMember]) -> list[str]:
 
 	lista = []
 	for u in user_list_obj:
@@ -54,7 +54,7 @@ def get_list_str(user_list_obj: list[ChatMember]) ->list[str]:
 
 	return lista
 
-def get_sorteggiati_list_obj(update: Update, user_list_obj: list[ChatMember], estrazioni_n: int) ->list[ChatMember]:
+def get_sorteggiati_list(update: Update, user_list_obj: list[ChatMember], estrazioni_n: int) ->list[ChatMember]:
 
 	sorteggiati_list = [] 
 
@@ -110,7 +110,7 @@ def sorteggio(update: Update, context: CallbackContext):
 		return		
 	
 	if command.find(COMANDI["sorteggio_admin"]) != -1:
-		list_obj = get_admin_list_obj(update, context)
+		list_obj = get_admin_list(update, context)
 	elif command.find(COMANDI["sorteggio_tutti_utenti"]) != -1:
 		list_obj = get_all_members_list_obj(context)
 	elif command.find(COMANDI["sorteggio_non_admin"]) != -1:
@@ -121,17 +121,17 @@ def sorteggio(update: Update, context: CallbackContext):
 			update.message.reply_text("Inserisci uno o più username validi")
 			return
 	
-	list_str = get_list_str(list_obj)
+	list_str = user_list_to_string(list_obj)
 
 	update.message.reply_text("Lista di partecipanti al Sorteggio:" + '\n\n' + str(list_str))	
 
-	sorteggiati_list_obj = get_sorteggiati_list_obj(update, 
+	sorteggiati_list_obj = get_sorteggiati_list(update, 
 		list_obj, estrazioni_n)
 
 	if sorteggiati_list_obj == None:
 		return
 
-	sorteggiati_list_str = get_list_str(sorteggiati_list_obj)	
+	sorteggiati_list_str = user_list_to_string(sorteggiati_list_obj)	
 	update.message.reply_text("Risulato:" + '\n\n' + str(sorteggiati_list_str) )
 	
 
