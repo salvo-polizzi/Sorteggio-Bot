@@ -1,9 +1,6 @@
-from ast import Call
-from calendar import c
 import random
 
 from telegram.ext.updater import Updater
-from telegram.update import Update
 from telegram.ext.callbackcontext import CallbackContext
 from telegram.ext.commandhandler import CommandHandler
 from telegram.ext.messagehandler import MessageHandler
@@ -21,11 +18,11 @@ updater = Updater(token, use_context=True)
 b = Bot(token)
 
 #defining first methods
-def start(update: Update, context: CallbackContext):
+def start(update: Update):
 	update.message.reply_text(
 		"Ciao :), scrivi /help per vedere i comandi disponibili.")	
 
-def help(update: Update, context: CallbackContext):
+def help(update: Update):
 	update.message.reply_text(HELP)
 
 def unknown(update: Update, context: CallbackContext):
@@ -33,7 +30,7 @@ def unknown(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		" '%s' non è un comando valido" % update.message.text)
 
-def get_admin_list(update: Update, context: CallbackContext) ->list[ChatMember]:
+def get_admin_list(context: CallbackContext) ->list[ChatMember]:
 
 	chat_id = context._chat_id_and_data[0]
 
@@ -110,11 +107,11 @@ def sorteggio(update: Update, context: CallbackContext):
 		return		
 	
 	if command.find(COMANDI["sorteggio_admin"]) != -1:
-		list_obj = get_admin_list(update, context)
+		list_obj = get_admin_list(context)
 	elif command.find(COMANDI["sorteggio_tutti_utenti"]) != -1:
 		list_obj = get_all_members_list_obj(context)
 	elif command.find(COMANDI["sorteggio_non_admin"]) != -1:
-		list_obj = get_non_administrators(update, context)
+		list_obj = get_non_administrators(context)
 	elif command.find(COMANDI["sorteggio_utenti_scelti"]) != -1:
 		list_obj = get_chosen_users(context)
 		if list_obj == None:
@@ -135,7 +132,7 @@ def sorteggio(update: Update, context: CallbackContext):
 	update.message.reply_text("Risulato:" + '\n\n' + str(sorteggiati_list_str) )
 	
 
-def update_chat_data(update: Update, context: CallbackContext) ->None:
+def update_chat_data(update: Update, context: CallbackContext) -> None:
 	#ATTENZIONE: affinche funzioni per bene, cioè possa leggere tutti i messaggi
 	#group privacy mode deve essere off (da prima ancora di avere aggiunto il bot al gruppo)
 
@@ -152,12 +149,12 @@ def update_chat_data(update: Update, context: CallbackContext) ->None:
 
 	#print(context.chat_data)
 
-def get_all_members_list_obj(context: CallbackContext) ->list[ChatMember]:
+def get_all_members_list_obj(context: CallbackContext) -> list[ChatMember]:
 
 	chat_members_list_obj = list(context.chat_data.values())
 	return chat_members_list_obj
 
-def get_non_administrators(update: Update, context: CallbackContext) -> list[ChatMember]:
+def get_non_administrators(context: CallbackContext) -> list[ChatMember]:
 
 	list_members = get_all_members_list_obj(context)
 
