@@ -10,7 +10,7 @@ from telegram import *
 from vars import *
 
 #taking the token
-first_line = open("src/token.txt").readline()
+first_line = open("token.txt").readline()
 token = first_line
 	
 updater = Updater(token, use_context=True)
@@ -18,11 +18,11 @@ updater = Updater(token, use_context=True)
 b = Bot(token)
 
 #defining first methods
-def start(update: Update):
+def start(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		"Ciao :), scrivi /help per vedere i comandi disponibili.")	
 
-def help(update: Update):
+def help(update: Update, context: CallbackContext):
 	update.message.reply_text(HELP)
 
 def unknown(update: Update, context: CallbackContext):
@@ -129,7 +129,7 @@ def sorteggio(update: Update, context: CallbackContext):
 		return
 
 	sorteggiati_list_str = user_list_to_string(sorteggiati_list_obj)	
-	update.message.reply_text("Risulato:" + '\n\n' + str(sorteggiati_list_str) )
+	update.message.reply_text("Risultato:" + '\n\n' + str(sorteggiati_list_str) )
 	
 
 def update_chat_data(update: Update, context: CallbackContext) -> None:
