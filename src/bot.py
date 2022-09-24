@@ -7,7 +7,9 @@ from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
 
 from telegram import *
-from vars import *
+from src.vars import *
+
+from typing import *
 
 #taking the token
 first_line = open("token.txt").readline()
@@ -30,7 +32,7 @@ def unknown(update: Update, context: CallbackContext):
 	update.message.reply_text(
 		" '%s' non è un comando valido" % update.message.text)
 
-def get_admin_list(context: CallbackContext) ->list[ChatMember]:
+def get_admin_list(context: CallbackContext) -> List[ChatMember]:
 
 	chat_id = context._chat_id_and_data[0]
 
@@ -38,7 +40,7 @@ def get_admin_list(context: CallbackContext) ->list[ChatMember]:
 
 	return admin_list_obj		
 
-def user_list_to_string(user_list_obj: list[ChatMember]) -> list[str]:
+def user_list_to_string(user_list_obj: List[ChatMember]) -> List[str]:
 
 	lista = []
 	for u in user_list_obj:
@@ -51,7 +53,7 @@ def user_list_to_string(user_list_obj: list[ChatMember]) -> list[str]:
 
 	return lista
 
-def get_sorteggiati_list(update: Update, user_list_obj: list[ChatMember], estrazioni_n: int) ->list[ChatMember]:
+def get_sorteggiati_list(update: Update, user_list_obj: List[ChatMember], estrazioni_n: int) -> List[ChatMember]:
 
 	sorteggiati_list = [] 
 
@@ -69,7 +71,7 @@ def get_sorteggiati_list(update: Update, user_list_obj: list[ChatMember], estraz
 
 
 
-def get_chosen_users(context: CallbackContext) -> list[ChatMember]:
+def get_chosen_users(context: CallbackContext) -> List[ChatMember]:
 	
 	user_list = []
 
@@ -149,12 +151,12 @@ def update_chat_data(update: Update, context: CallbackContext) -> None:
 
 	#print(context.chat_data)
 
-def get_all_members_list_obj(context: CallbackContext) -> list[ChatMember]:
+def get_all_members_list_obj(context: CallbackContext) -> List[ChatMember]:
 
 	chat_members_list_obj = list(context.chat_data.values())
 	return chat_members_list_obj
 
-def get_non_administrators(context: CallbackContext) -> list[ChatMember]:
+def get_non_administrators(context: CallbackContext) -> List[ChatMember]:
 
 	list_members = get_all_members_list_obj(context)
 
