@@ -1,11 +1,11 @@
-COMANDI: dict[str, str] = {
+COMANDI: dict = {
     "sorteggio_admin": "sorteggioAdmin",
     "sorteggio_utenti_scelti": "sorteggioManuale",
     "sorteggio_tutti_utenti": "sorteggioUtenti",
     "sorteggio_non_admin": "sorteggioNonAdmin"
 }
 
-RISPOSTE: dict[str, str] = {
+RISPOSTE: dict = {
     "numero_partecipanti": "Il numero di partecipanti al sorteggio è minore del\
 	numero di partecipanti da sorteggiare",
     "specificare_partecipanti": "Il comando deve essere utilizzato specificando il numero\
