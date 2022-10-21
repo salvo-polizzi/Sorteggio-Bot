@@ -1,3 +1,4 @@
+
 import random
 
 from telegram.ext.updater import Updater
@@ -7,12 +8,20 @@ from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
 
 from telegram import *
-from src.vars import *
+
+try:
+	from src.vars import *
+except:
+	from vars import *
 
 from typing import *
 
 #taking the token
-first_line = open("token.txt").readline()
+try:
+	first_line = open("src/token.txt").readline()
+except:
+	first_line = open("Sorteggio-Bot/src/token.txt").readline()
+
 token = first_line
 	
 updater = Updater(token, use_context=True)

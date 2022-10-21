@@ -10,7 +10,7 @@ def create_parser() -> None:
 
 def main():
     #creating token.txt file
-    f = open("token.txt", "w")
+    f = open("src/token.txt", "w")
     
     #creating the parser
     parser = create_parser()
