@@ -9,6 +9,7 @@ If you want to set up a local insance you have to:
 - **Install [system requirements](#systems-requirements)** 
 - **Clone this repository** 
 - **Send a message** to your bot on telegram
+- **Go inside your personal directory** `Sorteggio-Bot` in terminal
 - **Set your token** with `python3 setup.py <token>` 
 - **Launch** the bot with `python3 src/bot.py`
 
